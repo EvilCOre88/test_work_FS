@@ -10,22 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
+
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t-g(vo$t8x$v)@^pqqzp(dn8a5f65knlssyrf$@gnr0#x#-42&'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = int(os.getenv('DEBUG', default=0))
+# 'DJANGO_ALLOWED_HOSTS' должен быть в виде одной строки с хостами разделенными символом пробела
+# Для примера: 'DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]'
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(',')
 
 
 # Application definition
@@ -77,14 +81,25 @@ WSGI_APPLICATION = 'test_work_FS.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'test_work_fs',
+#         'HOST': '127.0.0.1',
+#         'PORT': '6001',
+#         'USER': 'evilcore',
+#         'PASSWORD': '12345678abc',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'test_work_fs',
-        'HOST': '127.0.0.1',
-        'PORT': '6001',
-        'USER': 'evilcore',
-        'PASSWORD': '12345678abc',
+        'ENGINE': os.getenv("SQL_ENGINE", "django.db.backends.sqlite3"),
+        'NAME': os.getenv("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
+        'USER': os.getenv("SQL_USER", "user"),
+        'PASSWORD': os.getenv("SQL_PASSWORD", "password"),
+        'HOST': os.getenv("SQL_HOST", "localhost"),
+        'PORT': os.getenv("SQL_PORT", "5432"),
     }
 }
 

@@ -1,18 +1,19 @@
 # Использовать официальный образ родительского образа / слепка.
 FROM python:3.10
-# Установка рабочей директории, откуда выполняются команды внутри контейнера.
+# set work directory
 WORKDIR /usr/src/app
-# Добавляем переменные окружения
+# set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-
+# install psycopg2 dependencies
+RUN apk update \
+    && apk add postgresql-dev gcc python3-dev musl-dev
+# install dependencies
+RUN pip install --upgrade pip
 COPY ./requirements.txt .
-
 RUN pip install -r requirements.txt
-
+# copy project
 COPY . .
-# Добавить мета-информацию к образу для открытия порта к прослушиванию.
-EXPOSE 8000
 # Выполнить команду внутри контейнера
 CMD python manage.py runserver 0.0.0.0:8000
 CMD celery -A test_work_FS worker -l info -P gevent

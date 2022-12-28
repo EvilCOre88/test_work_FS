@@ -1,0 +1,9 @@
+[Unit]
+Description=test work service
+After=network.target
+[Service]
+User=evilcore
+Group=www-data
+WorkingDirectory=C:\users\Evil COre\PycharmProjects\Test_work_FS
+ExecStart=
+[Install]
