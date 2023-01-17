@@ -86,11 +86,8 @@ def to_db(status_code, client_id):
 
 
 @app.task
-def sending(message, mailing_id):
-    status_list = []
-    for client_id in message:
-        info = task_info(client_id, mailing_id)
-        res = requests.post(info[0], data=json.dumps(info[1]), headers=info[2])
-        to_db(res.status_code, client_id)
-        status_list.append(res.status_code)
-    return status_list
+def sending(client_id, mailing_id):
+    info = task_info(client_id, mailing_id)
+    res = requests.post(info[0], data=json.dumps(info[1]), headers=info[2])
+    to_db(res.status_code, client_id)
+    return res.status_code

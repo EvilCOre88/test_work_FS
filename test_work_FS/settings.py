@@ -12,15 +12,15 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 import os
 
+from dotenv import load_dotenv
+
 from pathlib import Path
 
-from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -81,28 +81,16 @@ WSGI_APPLICATION = 'test_work_FS.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'test_work_fs',
-#         'HOST': '127.0.0.1',
-#         'PORT': '6001',
-#         'USER': 'evilcore',
-#         'PASSWORD': '12345678abc',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv("SQL_ENGINE", "django.db.backends.sqlite3"),
-        'NAME': os.getenv("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
-        'USER': os.getenv("SQL_USER", "user"),
-        'PASSWORD': os.getenv("SQL_PASSWORD", "password"),
-        'HOST': os.getenv("SQL_HOST", "localhost"),
-        'PORT': os.getenv("SQL_PORT", "5432"),
+        'ENGINE': os.getenv("POSTGRES_ENGINE"),
+        'NAME': os.getenv("POSTGRES_DATABASE"),
+        'USER': os.getenv("POSTGRES_USER"),
+        'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
+        'HOST': os.getenv("POSTGRES_HOST"),
+        'PORT': os.getenv("POSTGRES_PORT"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -149,8 +137,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # REDIS settings
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = '6000'
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
 
 # CELERY settings
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'

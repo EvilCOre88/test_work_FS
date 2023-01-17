@@ -65,8 +65,6 @@ class MailingListViewSet(ModelViewSet):
 
 class MailingListDetailViewSet(ModelViewSet):
     queryset = MailingList.objects.values('id', 'mailing_date_time', 'message', 'filter_code', 'filter_tag', 'finish_date_time', 'messages')
-    # print([q for q in queryset])
-    # print([q for q in queryset.order_by('messages__send_date_time')])
     serializer_class = MailingListDetailSerializer
 
 
@@ -151,8 +149,6 @@ def client_ids(mailing_list_id):
                 return not_sent
             elif len(sent) == len(client_list):
                 return True
-            elif len(not_sent) == len(client_list):
-                return not_sent
             else:
                 return not_sent
     except AttributeError:
@@ -161,7 +157,7 @@ def client_ids(mailing_list_id):
 
 @api_view(['GET', 'POST'])
 def send_mail(request):
-    send_time = dt.now().strftime('%Y-%m-%d %H:%M:%S')
+
     if request.method == 'GET':
         return Response({'message': 'Этот путь поддерживает только метод POST'})
     elif request.method == 'POST':
@@ -181,30 +177,43 @@ def send_mail(request):
                 elif message is False:
                     return Response({'message': 'Такой рассылки не существует!'}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    if send_time > mail_from and send_time < mail_to:
-                        res = sending.delay(message, mailing_id)
-                        res = res.get()
-                        if 400 in res:
-                            return Response({'message': 'Некоторые сообщения не отправлены, повторите попытку еще раз'},
-                                            status=status.HTTP_206_PARTIAL_CONTENT)
-                        elif 200 in res:
-                            return Response({'message': 'Сообщения успешно отправлены!'},
-                                            status=status.HTTP_200_OK)
-                        elif 404 in res:
-                            return Response({'message': f'Некорректная страница запроса сервера, повторите попытку'},
-                                            status=status.HTTP_404_NOT_FOUND)
+                    res = []
+                    print(message)
+                    for m in message:
+                        tz = Client.objects.get(id= m)
+                        tz = tz.timezone
+                        if tz[0] == '-':
+                            tz = '+' + tz[1:]
+                        elif tz[0] == '+':
+                            tz = '-' + tz[1:]
                         else:
-                            return Response({'message': f'Странный респонс от сервера {status_list}, повторите попытку'},
-                                            status=status.HTTP_400_BAD_REQUEST)
-                    elif send_time < mail_from:
-                        countdown = dt.strptime(mail_from, '%Y-%m-%d %H:%M:%S') - dt.strptime(send_time, '%Y-%m-%d %H:%M:%S')
-                        res = sending.apply_async((message, mailing_id), countdown= countdown.seconds)
-                        if not res.ready():
-                            return Response({'message': f'Сообщения поставлены в очередь и будут отправлены {mail_from}'},
-                                            status=status.HTTP_201_CREATED)
-                    else:
-                        return Response({'message': f'Время рассылки {mail_to} уже окончено, измините время рассылки!'},
-                                        status=status.HTTP_204_NO_CONTENT)
+                            res.append({'message': f'Укажите правильный часовой пояс в формате `+3` для клиента {m}'})
+                            continue
+                        zone = pytz.timezone(f'Etc/GMT{tz}')
+                        send_time = dt.now(zone).strftime('%Y-%m-%d %H:%M:%S')
+                        if send_time > mail_from and send_time < mail_to:
+                            response = sending.delay(m, mailing_id)
+                            response = response.get()
+                            print(response)
+                            if response == 400:
+                                res.append({f'client_id {m}': f'Сообщение клиенту {m} не отправлено, пробуем еще раз'})
+                            elif response ==  200:
+                                res.append({f'client_id {m}': f'Сообщение для клиента {m} успешно отправлено!'})
+                            elif response == 404:
+                                res.append({f'client_id {m}': f'Некорректная страница запроса сервера для клиента {m}, повторите попытку'})
+                            else:
+                                res.append({f'client_id {m}': f'Странный респонс от сервера {status_list},'
+                                                              f'для клиента {m} повторите попытку'})
+                        elif send_time < mail_from:
+                            countdown = dt.strptime(mail_from, '%Y-%m-%d %H:%M:%S') - dt.strptime(send_time, '%Y-%m-%d %H:%M:%S')
+                            response = sending.apply_async((m, mailing_id), countdown= countdown.seconds)
+                            if not response.ready():
+                                res.append({f'client_id {m}': f'Сообщение для клиента {m} поставлено в очередь '
+                                                            f'и будет отправлено {mail_from}'})
+                        else:
+                            res.append({f'client_id {m}': f'Время рассылки {mail_to} для клиента {m} уже окончено, '
+                                                               f'измените время рассылки!'})
+                    return Response({'message': res}, status=status.HTTP_202_ACCEPTED)
             else:
                 return Response({'message': f'Рассылки номер {mailing_id} не существует!'},
                                 status=status.HTTP_400_BAD_REQUEST)

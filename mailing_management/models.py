@@ -21,7 +21,7 @@ class Client(models.Model):
     code = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(999)],
                                        verbose_name='Код оператора')
     tag = models.CharField(max_length=10,
-                           verbose_name='Код оператора и тег')
+                           verbose_name='Тег')
     timezone = models.CharField(max_length=20,
                                 verbose_name='Часовой пояс')
 

@@ -2,24 +2,47 @@ version: '3.8'
 
 services:
   web:
-    build: ./app
-    command: python manage.py runserver 0.0.0.0:8000
+    build: .
     volumes:
-      - ./app/:/usr/src/app/
+      - .:/code
     ports:
-      - 8000:8000
+      - 8888:8000
     env_file:
       - ./.env
     depends_on:
       - db
+    restart: always
+    networks:
+      - net-backend
   db:
-    image: postgres:15.1
+    image: postgres:latest
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 6001:5432
     environment:
       - POSTGRES_USER=evilcore
       - POSTGRES_PASSWORD=12345678abc
       - POSTGRES_DB=test_work_fs
-
+    restart: always
+    networks:
+      - net-backend
+  cache:
+    image: redis:latest
+    depends_on:
+      - web
+      - db
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - cache:/data
+    networks:
+      - net-backend
+      
 volumes:
   postgres_data:
+  cache:
+    driver: local
+    
+networks:
+  net-backend:
