@@ -24,6 +24,7 @@ services:
       - POSTGRES_USER=evilcore
       - POSTGRES_PASSWORD=12345678abc
       - POSTGRES_DB=test_work_fs
+      - PGDATA=/var/lib/postgresql/data/pgdata
     restart: always
     networks:
       - net-backend
