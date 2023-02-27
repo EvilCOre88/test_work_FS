@@ -6,7 +6,7 @@
 
 ## Запуск приложения:
 
-- Клонируйте репозиторий командой <code>git clone https://github.com/EvilCOre88/test_work_FS.git</code> и перейдите в [каталог](/1.4) с Docker-файлами
+- Клонируйте репозиторий командой <code>git clone https://github.com/EvilCOre88/test_work_FS.git</code> и перейдите в [каталог](/test_work_FS) с Docker-файлами
 
 > Для создания и запуска контейнеров введите команду <code>docker-compose up -d</code>
 
